@@ -5,6 +5,18 @@ DRAFT
 
 ## Table of Contents
 
+- [Introduction](#introduction)
+- [Terminology](#terminology)
+- [Copyright](#copyright)
+
+## Introduction
+
+This is a draft of the MEX format specifications.
+
+## Terminology
+
+Nuthing :D
+
 ## Copyright
 
 Copyright © 2025 TheMonHub.
