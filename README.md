@@ -1,2 +1,2 @@
-# specifications
-The specifications of formats defined by !SHIRO
+# SPECIFICATIONS
+This repository contained specifications of formats defined by !SHIRO
