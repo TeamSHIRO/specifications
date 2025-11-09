@@ -274,8 +274,8 @@ typedef enum {
 - **Write**: This segment is read-write. **(RW)**
 - **Execute**: This segment is read-execute. **(RX)**
 - **Write/Execute**: This segment is read-write-execute. **(RWX)**
-- **Custom**: This segment is custom defined by the linker/loader, whose format and meaning is determined solely by the
-  loader/linker.
+- **Custom**: This segment is custom defined by the program/loader, whose format and meaning is determined solely by the
+  program/loader.
 - **Zero-init**: This segment is zero-initialized. **(RW)**
 - **Zero-init-exec**: This segment is zero-initialized and read-write-execute. **(RWX)**
 
