@@ -201,7 +201,6 @@ Padding to align the structure to 8 bytes. This byte can be arbitrary.
 #### C++ Examples
 
 ```c++
-// 32-bit header
 typedef struct {
     char    magic[4] = {0x7F, 'M', 'E', 'X'};
     uint8_t endianness;
