@@ -1,4 +1,4 @@
-# SPECIFICATIONS
+# !SHIRO Specifications
 This repository contained specifications of formats defined by !SHIRO
 
 - [**MEX** - **M**inimal **EX**ecutable Format](MEX)
