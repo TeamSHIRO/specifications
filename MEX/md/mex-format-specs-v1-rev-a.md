@@ -1,4 +1,6 @@
 # DRAFT
+TODO: apparently I was gone too far and string table is reductant and serve no use
+TODO: add symbol table number/size at the header because I forgot and now it's impossible to load
 # MEX Format Specifications
 **Version `1.0` | Revision `A` | `9/10/2025`**
 
