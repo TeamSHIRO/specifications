@@ -2,6 +2,7 @@
 TODO: apparently I was gone too far and string table is reductant and serve no use
 TODO: add symbol table number/size at the header because I forgot and now it's impossible to load
 # MEX Format Specifications
+TODO: considering new file class 'hybrid' where offset is stored in 32 bit and address are in 64 bit.
 **Version `1.0` | Revision `A` | `9/10/2025`**
 
 ## Foreword
