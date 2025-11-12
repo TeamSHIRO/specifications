@@ -1,11 +1,6 @@
 # DRAFT
-TODO: apparently I have gone too far and string table is reductant and serve no use.
-
-TODO: add symbol table number/size at the header because I forgot to do it and now it's impossible to load MEX
-
-TODO: nvm I will change all the offset to be 32 bit.
 # MEX Format Specifications
-**Version `1.0` | Revision `A` | `9/10/2025`**
+**Version `1.0` | Revision `A` | `12/10/2025`**
 
 ## Foreword
 This document describes the format of **MEX** files and basic concepts related to it.
@@ -16,11 +11,19 @@ document.
 ## Table of Contents
 
 - **1: [Introduction](#1-introduction)**
+  - **1.1: [About MEX](#11-about-mex)**
+  - **1.2: [Terminology](#12-terminology)**
+  - **1.3: [Data Types](#13-data-types)**
+  - **1.4: [File Format](#14-file-format)**
 - **2: [MEX Header](#2-mex-header)**
+  - **2.1: [Contents of the MEX Header](#21-contents-of-the-mex-header)**
+  - **2.2: [MEX Identification](#22-mex-identification)**
 - **3: [MEX Segment Header](#3-mex-segment-header-table)**
-- **4: [MEX String Table](#4-mex-string-table)**
-- **5: [MEX Symbol Table](#5-mex-symbol-table)**
-- **6: [MEX Relocation Header](#6-mex-relocation-header-table)**
+  - **3.1: [Segment Header Table Entry](#31-segment-header-table-entry)**
+- **4: [MEX Symbol Table](#4-mex-symbol-table)**
+  - **4.1: [Symbol Table Entry](#41-symbol-table-entry)**
+- **5: [MEX Relocation Header](#5-mex-relocation-header-table)**
+  - **5.1: [Relocation Header Table Entry](#51-relocation-header-table-entry)**
 - **Appendix: [Copyright](#copyright)**
 
 ---
@@ -82,7 +85,7 @@ All **data** must be padded and aligned to their natural size. As an example, `u
 
 All **offsets** and **sizes** are stored in bytes.
 
-All **offsets** are relative to the beginning of the file.
+All **offsets** are relative to the beginning of the file unless otherwise specified.
 
 All unspecified **enum** are reserved for future use.
 
@@ -122,7 +125,8 @@ The header of a **MEX** file contains the following fields:
 | 0      | 8    | MEX Ident        | MEX identification structure.      |
 | 8      | 4    | Entry Point      | Entry point of the program.        |
 | 12     | 2    | Segment Count    | Number of segments in the file.    |
-| 14     | 2    | Relocation Count | Number of relocations in the file. |
+| 14     | 2    | Symbol Count     | Number of symbols in the file.     |     
+| 16     | 2    | Relocation Count | Number of relocations in the file. |
 | 16     |      |                  | End of The Header (Size)           |
 
 #### 64-bit Header
@@ -141,10 +145,13 @@ The identification structure is described in the [**MEX Identification**](#22-me
 The entry point of the program. Contains the virtual address of the first instruction to execute.
 
 #### Segment Count
-The number of segment header table entries in the file.
+The number of segment header table entries in the segment header table.
+
+#### Symbol Count
+The number of symbol table entries in the symbol table.
 
 #### Relocation Count
-The number of relocation header table entries in the file.
+The number of relocation header table entries in the relocation header table.
 
 #### C Examples
 ```c++
@@ -219,6 +226,12 @@ typedef struct {
 
 ---
 
+### File Class
+File class determines the size of certain fields in the **MEX** file structures. Most header have a 32-bit and 64-bit
+version and the file class determines which version is used respectively.
+
+---
+
 ## 3. MEX Segment Header Table
 Segment header table is an array of segment header table entry. Each segment header describes a segment in the file.
 The segment header table is located **immediately** after the **MEX** header.
@@ -241,12 +254,12 @@ The segment header table entry is described in the following table:
 | Offset | Size | Field             | Description                              |
 |--------|------|-------------------|------------------------------------------|
 | 0      | 1    | Segment Type      | Type of the segment.                     |
-| 1      | 7    | Padding           |                                          |
-| 8      | 8    | Segment Offset    | Offset of the segment in the file.       |
-| 16     | 8    | Segment Size      | Size of the segment in the file.         |
-| 24     | 8    | Segment Virtual   | Starting virtual address of the segment. |
-| 32     | 8    | Segment Alignment | Alignment of the segment.                |
-| 40     |      |                   | End of Segment Header (Size)             |
+| 1      | 3    | Padding           |                                          |
+| 4      | 4    | Segment Offset    | Offset of the segment in the file.       |
+| 8      | 8    | Segment Size      | Size of the segment in the file.         |
+| 16     | 8    | Segment Virtual   | Starting virtual address of the segment. |
+| 24     | 8    | Segment Alignment | Alignment of the segment.                |
+| 32     |      |                   | End of Segment Header (Size)             |
 
 #### Segment Type
 Type of the segment. Must be one of the following enum values:
@@ -327,8 +340,8 @@ typedef struct {
 // 64-bit segment header table entry
 typedef struct {
     uint8_t segment_type;
-    uint8_t padding[7];
-    uint64_t segment_offset;
+    uint8_t padding[3];
+    uint32_t segment_offset;
     uint64_t segment_size;
     uint64_t segment_virtual;
     uint64_t segment_alignment;
@@ -337,109 +350,30 @@ typedef struct {
 
 ---
 
-## 4. MEX String Table
-String table is an array of **null-terminated** strings. Each string is referenced by its index in the string table.
-The string table is located **immediately** after the **segment header table**.
-
-The first index `0` is reserved and must be a null character (i.e. `'\0'`).
-
-The string table index refer to any byte in the string table.
-
-The index is limited to the integer limit of uint32_t (32-bit) or uint64_t (64-bit) depending on the file class.
-
-The table is stored in the same format as the
-[**ELF String Table**](https://gabi.xinuos.com/elf/04-strtab.html#string-table). See
-[**ELF String Table**](https://gabi.xinuos.com/elf/04-strtab.html#string-table) for more information.
-
-Examples of string table:
-
-| 0    | 1   | 2   | 3   | 4   | 5   | 6   | 7   | 8   | 9    | 10  | 11  |
-|------|-----|-----|-----|-----|-----|-----|-----|-----|------|-----|-----|
-| '\0' | 'V' | 'a' | 'r' | 'i' | 'a' | 'b' | 'l' | 'e' | '\0' | 'n' | 'a' |
-
-| 12  | 13  | 14  | 15   | 16  | 17  | 18   | 19  | 20   | 21  | 22  | 23   |
-|-----|-----|-----|------|-----|-----|------|-----|------|-----|-----|------|
-| 'm' | 'e' | 'x' | '\0' | 'x' | 'x' | '\0' | 'y' | '\0' | 'e' | 'z' | '\0' |
-
----
-
-| Index | String     |
-|-------|------------|
-| 0     | _none_     |
-| 1     | "Variable" |
-| 10    | "name."    |
-| 16    | "xx"       |
-| 19    | "y"        |
-| 21    | "ez"       |
-
----
-
-## 5. MEX Symbol Table
+## 4. MEX Symbol Table
 Symbol table is an array of symbol table entry. Each symbol table entry describes a symbol in the file.
-The symbol table is located **immediately** after the **string table**.
+The symbol table is located **immediately** after the **segment header table**.
 
-Index `0` is reserved and must be a [**null symbol**](#null-symbol).
+Each symbol table entry is stored as a 4-byte or 8-byte structure depending on the file class.
 
-### 5.1 Symbol Table Entry
-The symbol table entry is described in the following table:
+The first index of the symbol table must be `0`.
 
-#### 32-bit Header
-| Offset | Size | Field             | Description                                 |
-|--------|------|-------------------|---------------------------------------------|
-| 0      | 4    | Symbol Name       | Name of the symbol inside the string table. |
-| 4      | 4    | Symbol Value      | Value of the symbol.                        |
-| 12     |      |                   | End of Symbol Header (Size)                 |
+### 4.1 Symbol Table Entry
+The symbol table entry is described in the following C equivalents:
 
-#### 64-bit Header
-| Offset | Size | Field             | Description                                 |
-|--------|------|-------------------|---------------------------------------------|
-| 0      | 8    | Symbol Name       | Name of the symbol inside the string table. |
-| 8      | 8    | Symbol Value      | Value of the symbol.                        |
-| 16     |      |                   | End of Symbol Header (Size)                 |
-
-#### Null Symbol
-The null symbol is a symbol with a string index of `0` for a name and a value of `0`.
-
-##### C Examples
 ```c++
-// 32-bit null symbol
-MexSymbol32 null_symbol_32 = { 0, 0 };
-
-// 64-bit null symbol
-MexSymbol64 null_symbol_64 = { 0, 0 };
-```
-
-#### Symbol Name
-Name of the symbol inside the string table.
-
-This refers to the index of the string in the string table.
-
-#### Symbol Value
-The virtual address of the symbol.
-
-#### C Examples
-```c++
-// 32-bit symbol table entry
-typedef struct {
-    uint32_t symbol_name;
-    uint32_t symbol_value;
-} MexSymbol32;
-
-// 64-bit symbol table entry
-typedef struct {
-    uint64_t symbol_name;
-    uint64_t symbol_value;
-} MexSymbol64;
+typedef uint32_t MexSymbol32;
+typedef uint64_t MexSymbol64;
 ```
 
 ---
 
-## 6. MEX Relocation Header Table
+## 5. MEX Relocation Header Table
 Relocation header table is an array of relocation header table entry. Each relocation header describes a relocation in
 the file.
 The relocation header table is located **immediately** after the **symbol table**.
 
-### 6.1 Relocation Header Table Entry
+### 5.1 Relocation Header Table Entry
 The relocation header table entry is described in the following table:
 
 The entry is stored in the same format as the
@@ -482,7 +416,6 @@ To determine the relocation type, the following bit mask is used:
 | 0-31   | Relocation Type      |
 | 32-63  | Symbol Table Index   |
 
----
 
 ##### Relocation Type
 The relocation type specifies how to interpret and apply the relocation. Relocation types are processor-specific;
@@ -490,8 +423,6 @@ descriptions of their behavior appear in the `psABI` supplement
 
 ##### Symbol Table Index
 The symbol table index is the index of the symbol in the symbol table.
-
----
 
 #### Relocation Addend
 A constant addend used to compute the value to be stored into the relocatable field.
